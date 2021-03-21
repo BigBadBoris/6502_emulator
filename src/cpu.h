@@ -67,7 +67,6 @@ uint16_t addr_absolute(Cpu * cpu);
 
 uint16_t addr_zero(Cpu * cpu);
 
-uint16_t 
 
 
 /* 
