@@ -133,15 +133,16 @@ void op_adc(Cpu * cpu, uint16_t arg){
 	cpu->acc = (temp & LOW_BYTE_MASK);
 }
 
+
 void op_sbc(Cpu * cpu, uint16_t arg){
-	// TODO FIXME
-	
 	// read value from memory
-	const int8_t val = (int8_t) cpu->mem_read(arg);
+	const uint8_t val = cpu->mem_read(arg);
 	const bool carry_set = cpu_is_status_bit_set(cpu, STAT_CARRY);
 	const bool decimal_set = cpu_is_status_bit_set(cpu, STAT_DECIMAL);
 	// do substraction, which is A - VAL - ~Carry
-	const int16_t temp = ((int8_t)cpu->acc) - val - ((carry_set) ? 0 : 1);
+	const uint16_t temp = cpu->acc - val - ((carry_set) ? 0 : 1);
+	// set accumulator to result
+	cpu->acc = temp & LOW_BYTE_MASK;
 	// set zero status bit if subtraction resulted in a zero
 	cpu_set_status_bit(cpu, STAT_ZERO, !(temp & LOW_BYTE_MASK));
 	if (decimal_set){
@@ -150,8 +151,12 @@ void op_sbc(Cpu * cpu, uint16_t arg){
 		// set negative status bit
 		cpu_set_status_bit(cpu, STAT_NEG, (temp & NEGATIVE_BIT));
 		// check for underflow
-		
+		bool operands_same_sign = !((cpu->acc ^ val) & NEGATIVE_BIT);
+		bool result_and_acc_opposite_sign = (cpu->acc ^ temp) & NEGATIVE_BIT;
+		bool overflow = operands_same_sign && result_and_acc_opposite_sign;
+		cpu_set_status_bit(cpu, STAT_OVERFLOW, overflow);
 	}
+	cpu_set_status_bit(cpu, STAT_CARRY, temp <= MAX_UINT8_T);
 }
 
 
@@ -260,6 +265,9 @@ void op_eor(Cpu * cpu, uint16_t arg){
 }
 
 
+/*
+ * 
+ */
 
 /*
  *  STATUS OPERATIONS

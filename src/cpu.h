@@ -39,8 +39,8 @@ struct Cpu {
 	void (*const mem_write) (uint16_t addr, uint8_t value);
 	
 	/* Instruction Jump Table */
-	op_ptr op_table[MAX_UINT8_T];
-	addr_op addr_table[MAX_UINT8_T];
+	op_ptr op_table[MAX_UINT8_T + 1];
+	addr_op addr_table[MAX_UINT8_T + 1];
 };
 
 
