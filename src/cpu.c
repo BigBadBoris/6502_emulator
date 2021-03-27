@@ -55,6 +55,11 @@ void op_sty(Cpu * cpu, uint16_t arg){
 	cpu->mem_write(arg, cpu->y_reg);
 }
 
+
+/* 
+ * Transfer Instructions
+ */
+
 /* Transfer the value from A to X */
 void op_tax(Cpu * cpu, uint16_t arg){
 	(void) arg; // not used
@@ -79,7 +84,22 @@ void op_tay(Cpu * cpu, uint16_t arg){
 
 /* Transfer the value from X to A */
 void op_txa(Cpu * cpu, uint16_t arg){
-	(void) arg;
+	(void) arg; // not used
+	cpu->acc = cpu->x_reg;
+	// set zero bit
+	cpu_set_status_bit(cpu, STAT_ZERO, !cpu->acc);
+	// set negative bit
+	cpu_set_status_bit(cpu, STAT_NEG, cpu->acc & NEGATIVE_BIT);
+}
+
+/* Transfer the value from Y to A */
+void op_tya(Cpu * cpu, uint16_t arg){
+	(void) arg; // not used
+	cpu->acc = cpu->y_reg;
+	// set zero bit
+	cpu_set_status_bit(cpu, STAT_ZERO, !cpu->acc);
+	// set negative bit
+	cpu_set_status_bit(cpu, STAT_NEG, cpu->acc & NEGATIVE_BIT);	
 }
 
 /*
