@@ -4,7 +4,6 @@
 #include "cpu.h"
 
 
-
 /*
  * Load/Store Operations
  */
@@ -109,36 +108,125 @@ void op_tya(Cpu * cpu, uint16_t arg){
 /* Add with carry */
 void op_adc(Cpu * cpu, uint16_t arg){
 	// read value from memory
-	uint8_t val = (arg & LOW_BYTE_MASK);
+	uint8_t val = cpu->mem_read(arg);
 	// do addition and set it to temporary variable
 	uint16_t temp = cpu->acc + val + (cpu_is_status_bit_set(cpu, STAT_CARRY) ? 1 : 0);
 	// set zero status bit if addition resulted in a 0
 	cpu_set_status_bit(cpu, STAT_ZERO, !(temp & LOW_BYTE_MASK));
 	if (cpu_is_status_bit_set(cpu, STAT_DECIMAL)){ // decimal addition
-		// TODO
+		// TODO implement decimal mode addition
 	} else { // binary addition
 		// set negative status bit
 		cpu_set_status_bit(cpu, STAT_NEG, (temp & NEGATIVE_BIT));
-		// checking for underflow: it has occurred if the result is the opposite sign of the operands
+		// set carry bit
+		cpu_set_status_bit(cpu, STAT_CARRY, (temp > MAX_UINT8_T));
+		// checking for overflow:
+		//it has occurred if the result is the opposite sign of the operands
 		// AND the operands are of same sign 
 		bool operands_same_sign = !((cpu->acc ^ val) & NEGATIVE_BIT);
 		bool result_and_acc_opposite_sign = (cpu->acc ^ temp) & NEGATIVE_BIT;
+		bool overflow = operands_same_sign && result_and_acc_opposite_sign;
 		// set overflow bit
-		cpu_set_status_bit(cpu, STAT_OVERFLOW, operands_same_sign && result_and_acc_opposite_sign);
+		cpu_set_status_bit(cpu, STAT_OVERFLOW, overflow);
 	}
 	// set accumulator value
 	cpu->acc = (temp & LOW_BYTE_MASK);
 }
 
+void op_sbc(Cpu * cpu, uint16_t arg){
+	// TODO FIXME
+	
+	// read value from memory
+	const int8_t val = (int8_t) cpu->mem_read(arg);
+	const bool carry_set = cpu_is_status_bit_set(cpu, STAT_CARRY);
+	const bool decimal_set = cpu_is_status_bit_set(cpu, STAT_DECIMAL);
+	// do substraction, which is A - VAL - ~Carry
+	const int16_t temp = ((int8_t)cpu->acc) - val - ((carry_set) ? 0 : 1);
+	// set zero status bit if subtraction resulted in a zero
+	cpu_set_status_bit(cpu, STAT_ZERO, !(temp & LOW_BYTE_MASK));
+	if (decimal_set){
+		// TODO
+	} else {
+		// set negative status bit
+		cpu_set_status_bit(cpu, STAT_NEG, (temp & NEGATIVE_BIT));
+		// check for underflow
+		
+	}
+}
+
+
+/*
+ * Increment/Decrement Instructions
+ */
+
+/* Increment memory by one */
+void op_inc(Cpu * cpu, uint16_t address){
+	uint8_t val = cpu->mem_read(address);
+	val++;
+	// set zero status bit
+	cpu_set_status_bit(cpu, STAT_ZERO, val == 0);
+	// set negative bit
+	cpu_set_status_bit(cpu, STAT_ZERO, val & NEGATIVE_BIT);
+	cpu->mem_write(address, val);
+}
+
+/* Increment X register by one */
+void op_inx(Cpu * cpu, uint16_t arg){
+	(void) arg;
+	const uint8_t val = ++(cpu->x_reg);
+	// set zero status bit
+	cpu_set_status_bit(cpu, STAT_ZERO, val == 0);
+	// set negative bit
+	cpu_set_status_bit(cpu, STAT_ZERO, val & NEGATIVE_BIT);
+}
+
+/* Increment Y register by one */
+void op_iny(Cpu * cpu, uint16_t arg){
+	(void) arg;
+	const uint8_t val = ++(cpu->y_reg);
+	// set zero status bit
+	cpu_set_status_bit(cpu, STAT_ZERO, val == 0);
+	// set negative bit
+	cpu_set_status_bit(cpu, STAT_ZERO, val & NEGATIVE_BIT);
+}
+
+/* Decrement memory by one */
+void op_dec(Cpu * cpu, uint16_t address){
+	uint8_t val = cpu->mem_read(address);
+	val--;
+	// set zero status bit
+	cpu_set_status_bit(cpu, STAT_ZERO, val == 0);
+	// set negative bit
+	cpu_set_status_bit(cpu, STAT_ZERO, val & NEGATIVE_BIT);
+	// write value back to memory
+	cpu->mem_write(address, val);
+}
+
+/* Decrement X register by one */
+void op_dex(Cpu * cpu, uint16_t arg){
+	(void) arg;
+	const uint8_t val = --(cpu->x_reg);
+	// set zero status bit
+	cpu_set_status_bit(cpu, STAT_ZERO, val == 0);
+	// set negative bit
+	cpu_set_status_bit(cpu, STAT_ZERO, val & NEGATIVE_BIT);
+}
+
+/* Decrement Y register by one */
+void op_dey(Cpu * cpu, uint16_t arg){
+	(void) arg;
+	const uint8_t val = --(cpu->y_reg);
+	// set zero status bit
+	cpu_set_status_bit(cpu, STAT_ZERO, val == 0);
+	// set negative bit
+	cpu_set_status_bit(cpu, STAT_ZERO, val & NEGATIVE_BIT);
+}
+
+
 
 /*
  *  STATUS OPERATIONS
  */
-
-/* Logical AND */
-void op_and(Cpu * cpu, uint16_t arg){
-	
-}
 
 /* Clear carry status flag */
 void op_clc(Cpu * cpu, uint16_t arg){
