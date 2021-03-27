@@ -222,6 +222,43 @@ void op_dey(Cpu * cpu, uint16_t arg){
 	cpu_set_status_bit(cpu, STAT_ZERO, val & NEGATIVE_BIT);
 }
 
+/*
+ * LOGICAL OPERATIONS
+ */
+
+/* AND memory with accumulator */
+void op_and(Cpu * cpu, uint16_t arg){
+	uint8_t val = cpu->mem_read(arg);
+	cpu->acc &= val;
+	val = cpu->acc;
+	// set zero status bit
+	cpu_set_status_bit(cpu, STAT_ZERO, val == 0);
+	// set negative bit
+	cpu_set_status_bit(cpu, STAT_ZERO, val & NEGATIVE_BIT);
+}
+
+/* OR memory with accumulator */
+void op_ora(Cpu * cpu, uint16_t arg){
+	uint8_t val = cpu->mem_read(arg);
+	cpu->acc |= val;
+	val = cpu->acc;
+	// set zero status bit
+	cpu_set_status_bit(cpu, STAT_ZERO, val == 0);
+	// set negative bit
+	cpu_set_status_bit(cpu, STAT_ZERO, val & NEGATIVE_BIT);
+}
+
+/* XOR memory with accumulator */
+void op_eor(Cpu * cpu, uint16_t arg){
+	uint8_t val = cpu->mem_read(arg);
+	cpu->acc ^= val;
+	val = cpu->acc;
+	// set zero status bit
+	cpu_set_status_bit(cpu, STAT_ZERO, val == 0);
+	// set negative bit
+	cpu_set_status_bit(cpu, STAT_ZERO, val & NEGATIVE_BIT);
+}
+
 
 
 /*
